@@ -849,9 +849,11 @@ parentViewController:(UIViewController*)parentViewController
     // set video orientation to what the camera sees
     self.processor.previewLayer.connection.videoOrientation = [[UIApplication sharedApplication] statusBarOrientation];
     
-    // this fixes the bug when the statusbar is landscape, and the preview layer
-    // starts up in portrait (not filling the whole view)
-    self.processor.previewLayer.frame = self.view.bounds;
+    if(self.view.bounds.size.height > self.view.bounds.size.width) {
+        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
+    } else {
+        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width);
+    }
 }
 
 //--------------------------------------------------------------------------
@@ -1002,8 +1004,8 @@ parentViewController:(UIViewController*)parentViewController
         CGContextSetLineWidth(context, RETICLE_WIDTH);
         CGContextBeginPath(context);
         CGFloat lineOffset = RETICLE_OFFSET+(0.5*RETICLE_WIDTH);
-        CGContextMoveToPoint(context, lineOffset, RETICLE_SIZE/2);
-        CGContextAddLineToPoint(context, RETICLE_SIZE-lineOffset, 0.5*RETICLE_SIZE);
+        CGContextMoveToPoint(context,  RETICLE_SIZE/2,lineOffset);
+        CGContextAddLineToPoint(context,  0.5*RETICLE_SIZE,RETICLE_SIZE-lineOffset);
         CGContextStrokePath(context);
     }
     
@@ -1058,7 +1060,11 @@ parentViewController:(UIViewController*)parentViewController
     
     self.processor.previewLayer.connection.videoOrientation = orientation;
     [self.processor.previewLayer layoutSublayers];
-    self.processor.previewLayer.frame = self.view.bounds;
+    if(self.view.bounds.size.height > self.view.bounds.size.width) {
+        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
+    } else {
+        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width);
+    }
     
     [CATransaction commit];
     [super willAnimateRotationToInterfaceOrientation:orientation duration:duration];
