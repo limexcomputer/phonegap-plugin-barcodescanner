@@ -826,12 +826,10 @@ parentViewController:(UIViewController*)parentViewController
     self.view = [[UIView alloc] initWithFrame: self.processor.parentViewController.view.frame];
     
     // setup capture preview layer
+    
     AVCaptureVideoPreviewLayer* previewLayer = self.processor.previewLayer;
-    if(self.view.bounds.size.height > self.view.bounds.size.width) {
-        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
-    } else {
-        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width);
-    }
+    self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
+    
     previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     
     if ([previewLayer.connection isVideoOrientationSupported]) {
@@ -848,12 +846,13 @@ parentViewController:(UIViewController*)parentViewController
     
     // set video orientation to what the camera sees
     self.processor.previewLayer.connection.videoOrientation = [[UIApplication sharedApplication] statusBarOrientation];
-    
-    if(self.view.bounds.size.height > self.view.bounds.size.width) {
+    /*
+    if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
         self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
-    } else {
+     else
         self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width);
-    }
+     */
+    
 }
 
 //--------------------------------------------------------------------------
@@ -905,7 +904,6 @@ parentViewController:(UIViewController*)parentViewController
         return [self buildOverlayViewFromXib];
     }
     CGRect bounds = self.view.bounds;
-    bounds = CGRectMake(0, 0, bounds.size.width, bounds.size.height);
     
     UIView* overlayView = [[UIView alloc] initWithFrame:bounds];
     overlayView.autoresizesSubviews = YES;
@@ -1004,8 +1002,13 @@ parentViewController:(UIViewController*)parentViewController
         CGContextSetLineWidth(context, RETICLE_WIDTH);
         CGContextBeginPath(context);
         CGFloat lineOffset = RETICLE_OFFSET+(0.5*RETICLE_WIDTH);
-        CGContextMoveToPoint(context,  RETICLE_SIZE/2,lineOffset);
-        CGContextAddLineToPoint(context,  0.5*RETICLE_SIZE,RETICLE_SIZE-lineOffset);
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad){
+            CGContextMoveToPoint(context,  RETICLE_SIZE/2,lineOffset);
+            CGContextAddLineToPoint(context,  0.5*RETICLE_SIZE,RETICLE_SIZE-lineOffset);
+        } else{
+            CGContextMoveToPoint(context, lineOffset, RETICLE_SIZE/2);
+            CGContextAddLineToPoint(context, RETICLE_SIZE-lineOffset,0.5*RETICLE_SIZE);
+        }
         CGContextStrokePath(context);
     }
     
@@ -1032,17 +1035,29 @@ parentViewController:(UIViewController*)parentViewController
 
 - (BOOL)shouldAutorotate
 {
-    return NO;
+    return YES;
 }
 
 - (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
 {
-    return UIInterfaceOrientationLandscapeLeft;
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    {
+        if([[UIApplication sharedApplication] statusBarOrientation]==UIInterfaceOrientationLandscapeRight)
+            return UIInterfaceOrientationLandscapeRight;
+        return UIInterfaceOrientationLandscapeLeft;
+    }
+    else
+        return UIInterfaceOrientationPortrait;
 }
 
 - (NSUInteger)supportedInterfaceOrientations
 {
-    return UIInterfaceOrientationMaskLandscapeLeft;
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    {
+        return UIInterfaceOrientationMaskLandscapeLeft | UIInterfaceOrientationMaskLandscapeRight ;
+    }
+    else
+        return UIInterfaceOrientationMaskPortrait;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -1051,7 +1066,12 @@ parentViewController:(UIViewController*)parentViewController
         return [self.orientationDelegate shouldAutorotateToInterfaceOrientation:interfaceOrientation];
     }
     
-    return NO;
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && UIInterfaceOrientationIsLandscape(interfaceOrientation))
+    {
+        return YES;
+    }
+    else
+        return NO;
 }
 
 - (void) willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)orientation duration:(NSTimeInterval)duration
@@ -1060,11 +1080,6 @@ parentViewController:(UIViewController*)parentViewController
     
     self.processor.previewLayer.connection.videoOrientation = orientation;
     [self.processor.previewLayer layoutSublayers];
-    if(self.view.bounds.size.height > self.view.bounds.size.width) {
-        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
-    } else {
-        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width);
-    }
     
     [CATransaction commit];
     [super willAnimateRotationToInterfaceOrientation:orientation duration:duration];
