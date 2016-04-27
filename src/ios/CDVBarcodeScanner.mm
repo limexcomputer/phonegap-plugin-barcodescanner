@@ -599,7 +599,7 @@ parentViewController:(UIViewController*)parentViewController
     
     size_t offsetX = (width  - greyWidth) / 2;
     size_t offsetY = (height - greyWidth) / 2;
-    
+     const BOOL isLandscape = UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad;
     // pixel-by-pixel ...
     for (size_t i=0; i<greyWidth; i++) {
         for (size_t j=0; j<greyWidth; j++) {
@@ -617,7 +617,7 @@ parentViewController:(UIViewController*)parentViewController
             0.59 * baseAddress[baseOffset + 1] +
             0.30 * baseAddress[baseOffset + 2];
             
-            greyData[nj*greyWidth + ni] = value;
+            greyData[(isLandscape) ? ni*greyWidth + nj : nj*greyWidth + ni] = value;
         }
     }
     
@@ -846,13 +846,7 @@ parentViewController:(UIViewController*)parentViewController
     
     // set video orientation to what the camera sees
     self.processor.previewLayer.connection.videoOrientation = [[UIApplication sharedApplication] statusBarOrientation];
-    /*
-    if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
-        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.width, self.view.bounds.size.height);
-     else
-        self.processor.previewLayer.frame = CGRectMake(0, 0, self.view.bounds.size.height, self.view.bounds.size.width);
-     */
-    
+   
 }
 
 //--------------------------------------------------------------------------
@@ -1002,13 +996,8 @@ parentViewController:(UIViewController*)parentViewController
         CGContextSetLineWidth(context, RETICLE_WIDTH);
         CGContextBeginPath(context);
         CGFloat lineOffset = RETICLE_OFFSET+(0.5*RETICLE_WIDTH);
-        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad){
-            CGContextMoveToPoint(context,  RETICLE_SIZE/2,lineOffset);
-            CGContextAddLineToPoint(context,  0.5*RETICLE_SIZE,RETICLE_SIZE-lineOffset);
-        } else{
-            CGContextMoveToPoint(context, lineOffset, RETICLE_SIZE/2);
-            CGContextAddLineToPoint(context, RETICLE_SIZE-lineOffset,0.5*RETICLE_SIZE);
-        }
+        CGContextMoveToPoint(context, lineOffset, RETICLE_SIZE/2);
+        CGContextAddLineToPoint(context, RETICLE_SIZE-lineOffset,0.5*RETICLE_SIZE);
         CGContextStrokePath(context);
     }
     
