@@ -835,7 +835,7 @@ parentViewController:(UIViewController*)parentViewController
     previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
     
     if ([previewLayer.connection isVideoOrientationSupported]) {
-        [previewLayer.connection setVideoOrientation:AVCaptureVideoOrientationPortrait];
+        [previewLayer.connection setVideoOrientation:AVCaptureVideoOrientationLandscape];
     }
     
     [self.view.layer insertSublayer:previewLayer below:[[self.view.layer sublayers] objectAtIndex:0]];
@@ -1035,12 +1035,12 @@ parentViewController:(UIViewController*)parentViewController
 
 - (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
 {
-    return UIInterfaceOrientationPortrait;
+    return UIInterfaceOrientationLandscape;
 }
 
 - (NSUInteger)supportedInterfaceOrientations
 {
-    return UIInterfaceOrientationMaskPortrait;
+    return UIInterfaceOrientationMaskLandscape;
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
@@ -1049,7 +1049,7 @@ parentViewController:(UIViewController*)parentViewController
         return [self.orientationDelegate shouldAutorotateToInterfaceOrientation:interfaceOrientation];
     }
     
-    return YES;
+    return NO;
 }
 
 - (void) willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)orientation duration:(NSTimeInterval)duration
