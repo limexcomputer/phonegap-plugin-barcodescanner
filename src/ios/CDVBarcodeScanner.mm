@@ -325,6 +325,14 @@ parentViewController:(UIViewController*)parentViewController
     [self.captureSession stopRunning];
     [self.parentViewController dismissViewControllerAnimated:YES completion:nil];
     
+     // HACK: Force rotate by changing the view hierarchy. Present modal view then dismiss it immediately.
+    [self.viewController presentViewController:[UIViewController new] animated:NO completion:^{
+        // delaying dismissal is necessary on iOS 8, crashes otherwise
+        dispatch_after(0, dispatch_get_main_queue(), ^{
+            [self.viewController dismissViewControllerAnimated:NO completion:nil];
+        });
+    }];
+
     // viewcontroller holding onto a reference to us, release them so they
     // will release us
     self.viewController = nil;
