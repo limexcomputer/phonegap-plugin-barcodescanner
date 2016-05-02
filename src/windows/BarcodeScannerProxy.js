@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright (c) Microsoft Open Technologies, Inc. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
@@ -216,9 +216,9 @@ module.exports = {
      * @param  {array} args       Arguments array
      */
     scan: function (success, fail, args) {
-        var capturePreview,
+        var capturePreviewFrame,
+            capturePreview,
             capturePreviewAlignmentMark,
-            captureCancelButton,
             navigationButtonsDiv,
             previewMirroring,
             closeButton,
@@ -247,14 +247,16 @@ module.exports = {
          * Creates a preview frame and necessary objects
          */
         function createPreview() {
+            var cssFile = urlutil.makeAbsolute("/www/css/plugin-barcodeScanner.css");
+            if (!document.querySelector("link[href='"+cssFile+"']")) {
+                // Create fullscreen preview
+                var capturePreviewFrameStyle = document.createElement('link');
+                capturePreviewFrameStyle.rel = "stylesheet";
+                capturePreviewFrameStyle.type = "text/css";
+                capturePreviewFrameStyle.href = cssFile;
 
-            // Create fullscreen preview
-            var capturePreviewFrameStyle = document.createElement('link');
-            capturePreviewFrameStyle.rel = "stylesheet";
-            capturePreviewFrameStyle.type = "text/css";
-            capturePreviewFrameStyle.href = urlutil.makeAbsolute("/www/css/plugin-barcodeScanner.css");
-
-            document.head.appendChild(capturePreviewFrameStyle);
+                document.head.appendChild(capturePreviewFrameStyle);
+            }
 
             capturePreviewFrame = document.createElement('div');
             capturePreviewFrame.className = "barcode-scanner-wrap";
@@ -416,12 +418,15 @@ module.exports = {
 
             if (capturePreviewFrame) {
                 document.body.removeChild(capturePreviewFrame);
+                capturePreviewFrame = null;
             }
 
             reader && reader.stop();
             reader = null;
-
-            capture && capture.stopRecordAsync();
+            if (capture) {
+                var c = capture;
+                c.stopRecordAsync().then(function () { c.close(); }, function () { c.close(); });
+            }
             capture = null;
         }
 
@@ -473,5 +478,3 @@ module.exports = {
 };
 
 require("cordova/exec/proxy").add("BarcodeScanner", module.exports);
-
-
