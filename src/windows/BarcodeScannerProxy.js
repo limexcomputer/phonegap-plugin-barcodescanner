@@ -75,23 +75,23 @@ function videoPreviewRotationLookup(displayOrientation, isMirrored) {
 
     switch (displayOrientation) {
         case Windows.Graphics.Display.DisplayOrientations.landscape:
-            degreesToRotate =  0;
+            degreesToRotate =  Windows.Media.Capture.VideoRotation.none;
             break;
         case Windows.Graphics.Display.DisplayOrientations.portrait:
             if (isMirrored) {
-                degreesToRotate = 270;
+                degreesToRotate = Windows.Media.Capture.VideoRotation.clockwise270Degrees;
             } else {
-                degreesToRotate = 90;
+                degreesToRotate = Windows.Media.Capture.VideoRotation.clockwise90Degrees;
             }
             break;
         case Windows.Graphics.Display.DisplayOrientations.landscapeFlipped:
-            degreesToRotate = 180;
+            degreesToRotate = Windows.Media.Capture.VideoRotation.clockwise180Degrees;
             break;
         case Windows.Graphics.Display.DisplayOrientations.portraitFlipped:
             if (isMirrored) {
-                degreesToRotate = 90;
+                degreesToRotate = Windows.Media.Capture.VideoRotation.clockwise90Degrees;
             } else {
-                degreesToRotate = 270;
+                degreesToRotate = Windows.Media.Capture.VideoRotation.clockwise270Degrees;
             }
             break;
         default:
@@ -216,9 +216,9 @@ module.exports = {
      * @param  {array} args       Arguments array
      */
     scan: function (success, fail, args) {
-        var capturePreviewFrame,
-            capturePreview,
+        var capturePreview,
             capturePreviewAlignmentMark,
+            captureCancelButton,
             navigationButtonsDiv,
             previewMirroring,
             closeButton,
@@ -237,26 +237,21 @@ module.exports = {
 
             // Lookup up the rotation degrees.
             var rotDegree = videoPreviewRotationLookup(currentOrientation, previewMirroring);
-            capturePreview.style.transform = "rotate("+rotDegree+"deg)";
-            
-            
-            //capture.setPreviewRotation(rotDegree);
+            capture.setPreviewRotation(rotDegree);
         }
 
         /**
          * Creates a preview frame and necessary objects
          */
         function createPreview() {
-            var cssFile = urlutil.makeAbsolute("/www/css/plugin-barcodeScanner.css");
-            if (!document.querySelector("link[href='"+cssFile+"']")) {
-                // Create fullscreen preview
-                var capturePreviewFrameStyle = document.createElement('link');
-                capturePreviewFrameStyle.rel = "stylesheet";
-                capturePreviewFrameStyle.type = "text/css";
-                capturePreviewFrameStyle.href = cssFile;
 
-                document.head.appendChild(capturePreviewFrameStyle);
-            }
+            // Create fullscreen preview
+            var capturePreviewFrameStyle = document.createElement('link');
+            capturePreviewFrameStyle.rel = "stylesheet";
+            capturePreviewFrameStyle.type = "text/css";
+            capturePreviewFrameStyle.href = urlutil.makeAbsolute("/www/css/plugin-barcodeScanner.css");
+
+            document.head.appendChild(capturePreviewFrameStyle);
 
             capturePreviewFrame = document.createElement('div');
             capturePreviewFrame.className = "barcode-scanner-wrap";
@@ -368,7 +363,7 @@ module.exports = {
                 deviceProps = Array.prototype.slice.call(deviceProps);
                 deviceProps = deviceProps.filter(function (prop) {
                     // filter out streams with "unknown" subtype - causes errors on some devices
-                    return prop.subtype !== "Unknown" && prop.width > 500;
+                    return prop.subtype !== "Unknown" && prop.width > 100;
                 }).sort(function (propA, propB) {
                     // sort properties by resolution
                     return propA.width - propB.width;
@@ -386,13 +381,11 @@ module.exports = {
             .then(function (captureSettings) {
 
                 capturePreview.msZoom = true;
-                
                 capturePreview.src = URL.createObjectURL(capture);
                 capturePreview.play();
-                
+
                 // Insert preview frame and controls into page
                 document.body.appendChild(capturePreviewFrame);
-                
 
                 return setupFocus(captureSettings.capture.videoDeviceController.focusControl)
                 .then(function () {
@@ -418,15 +411,12 @@ module.exports = {
 
             if (capturePreviewFrame) {
                 document.body.removeChild(capturePreviewFrame);
-                capturePreviewFrame = null;
             }
 
             reader && reader.stop();
             reader = null;
-            if (capture) {
-                var c = capture;
-                c.stopRecordAsync().then(function () { c.close(); }, function () { c.close(); });
-            }
+
+            capture && capture.stopRecordAsync();
             capture = null;
         }
 
