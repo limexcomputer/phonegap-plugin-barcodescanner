@@ -489,7 +489,7 @@ parentViewController:(UIViewController*)parentViewController
 //--------------------------------------------------------------------------
 // this method gets sent the captured frames
 //--------------------------------------------------------------------------
-- (void)captureOutput:(AVCaptureOutput*)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection*)connection {
+- (void)captureOutput:(AVCaptureOutput*)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection*)connection {
 
     if (!self.capturing) return;
 
@@ -1045,15 +1045,15 @@ parentViewController:(UIViewController*)parentViewController
     [UIView setAnimationsEnabled:NO];
     AVCaptureVideoPreviewLayer* previewLayer = self.processor.previewLayer;
     previewLayer.frame = self.view.bounds;
-
+  
     if (orientation == UIInterfaceOrientationLandscapeLeft) {
-        [previewLayer setOrientation:AVCaptureVideoOrientationLandscapeLeft];
+        [previewLayer.connection setVideoOrientation:AVCaptureVideoOrientationLandscapeLeft];
     } else if (orientation == UIInterfaceOrientationLandscapeRight) {
-        [previewLayer setOrientation:AVCaptureVideoOrientationLandscapeRight];
+        [previewLayer.connection setVideoOrientation:AVCaptureVideoOrientationLandscapeRight];
     } else if (orientation == UIInterfaceOrientationPortrait) {
-        [previewLayer setOrientation:AVCaptureVideoOrientationPortrait];
+        [previewLayer.connection setVideoOrientation:AVCaptureVideoOrientationPortrait];
     } else if (orientation == UIInterfaceOrientationPortraitUpsideDown) {
-        [previewLayer setOrientation:AVCaptureVideoOrientationPortraitUpsideDown];
+        [previewLayer.connection setVideoOrientation:AVCaptureVideoOrientationPortraitUpsideDown];
     }
 
     previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
